@@ -6,7 +6,7 @@ import { MonthlyGrowthChart } from './components/MonthlyGrowthChart';
 import { MonthlyTargetsChart } from './components/MonthlyTargetsChart';
 import { GoalProgress } from './components/GoalProgress';
 import { useMRRData } from './hooks/useMRRData';
-import { MONTHS, INITIAL_GROWTH_RATE } from './lib/constants';
+import { MONTHS, INITIAL_GROWTH_RATE, MONTHLY_GOALS } from './lib/constants';
 
 function App() {
   const { mrrData, isLoading, error } = useMRRData();
@@ -69,6 +69,9 @@ function App() {
     return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Error: {error}</div>;
   }
 
+  const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, so add 1
+  const monthlyGoal = MONTHLY_GOALS[currentMonth] || 0; // Default to 0 if no goal is set for the current month
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="px-16">
@@ -92,7 +95,7 @@ function App() {
               growth={thirtyDayGrowthPercentage}
               subtitle=" over 30 days"
             />
-            <GoalProgress currentValue={yesterday.mrr} />
+            <GoalProgress currentValue={yesterday.mrr} monthlyGoal={monthlyGoal}/>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">

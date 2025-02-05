@@ -1,12 +1,12 @@
 import React from 'react';
-import { MONTHLY_GOAL } from '../lib/constants';
 
 type GoalProgressProps = {
   currentValue: number;
+  monthlyGoal: number;
 };
 
-export function GoalProgress({ currentValue }: GoalProgressProps) {
-  const progress = (currentValue / MONTHLY_GOAL) * 100;
+export function GoalProgress({ currentValue, monthlyGoal }: GoalProgressProps) {
+  const progress = (currentValue / monthlyGoal) * 100;
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
@@ -15,7 +15,7 @@ export function GoalProgress({ currentValue }: GoalProgressProps) {
         <div className="flex items-end space-x-4">
           <h2 className="text-4xl font-bold text-gray-white">{`${progress.toFixed(1)}%`}</h2>
           <div className="text-sm text-gray-400">
-            of ${MONTHLY_GOAL.toLocaleString()}
+            of ${monthlyGoal.toLocaleString()}
           </div>
         </div>
         <div className="relative pt-1">

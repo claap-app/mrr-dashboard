@@ -14,7 +14,7 @@ export function Header({ growthRate, onGrowthRateChange, onRecalculate }: Header
         <DollarSign className="w-5 h-5 mr-2" />
         <h1 className="text-lg font-medium">MRR</h1>
       </div>
-      <div className="flex items-center space-x-8">
+      {/* <div className="flex items-center space-x-8">
         <div className="flex items-center space-x-2">
           <label htmlFor="growthRate" className="text-sm text-gray-400">
             Monthly Growth Rate (%)
@@ -35,7 +35,7 @@ export function Header({ growthRate, onGrowthRateChange, onRecalculate }: Header
         >
           <span>Recalculate</span>
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1,26 +1,49 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { MRRData } from '../lib/supabase';
-import { MONTHS } from '../lib/constants';
+import { MONTHS, MONTHLY_GOALS } from '../lib/constants';
 
 type MonthlyTargetsChartProps = {
-  targetData: { month: string; target: number }[];
   realizedData: MRRData[];
 };
 
-export function MonthlyTargetsChart({ targetData, realizedData }: MonthlyTargetsChartProps) {
-  const combinedData = targetData.map(target => {
-    const monthRealized = realizedData.find(item => {
-      const itemDate = new Date(item.creation_date);
-      return itemDate.getMonth() === MONTHS.indexOf(target.month) && 
-             itemDate.getFullYear() === 2025;
+export function MonthlyTargetsChart({ realizedData }: MonthlyTargetsChartProps) {
+  // Process realizedData to get the MRR of the last day of each month
+  const getLastDayMRR = (data: MRRData[]) => {
+    const lastDayMRR: { month: string; mrr: number }[] = [];
+    const groupedByMonth: { [key: string]: MRRData[] } = {};
+
+    data.forEach((entry) => {
+      const month = entry.creation_date.slice(0, 7); // Get the YYYY-MM part of the date
+      if (!groupedByMonth[month]) {
+        groupedByMonth[month] = [];
+      }
+      groupedByMonth[month].push(entry);
     });
 
-    return {
-      month: target.month,
-      target: target.target,
-      realized: monthRealized?.mrr || 0
-    };
+    Object.keys(groupedByMonth).forEach((month) => {
+      const monthData = groupedByMonth[month];
+      const lastDayEntry = monthData.reduce((latest, entry) => {
+        return new Date(entry.creation_date) > new Date(latest.creation_date) ? entry : latest;
+      });
+      lastDayMRR.push({ month, mrr: lastDayEntry.mrr });
+    });
+
+    return lastDayMRR;
+  };
+
+  const lastDayMRR = getLastDayMRR(realizedData);
+
+  // Create targetData from MONTHLY_GOALS
+  const targetData = Object.keys(MONTHLY_GOALS).map((month) => ({
+    month: MONTHS[Number(month) - 1], // Use month names
+    target: MONTHLY_GOALS[Number(month)],
+  }));
+
+  // Combine targetData and lastDayMRR data
+  const combinedData = targetData.map((target) => {
+    const realized = lastDayMRR.find((mrr) => mrr.month === `2025-${String(MONTHS.indexOf(target.month) + 1).padStart(2, '0')}`)?.mrr || 0;
+    return { ...target, realized };
   });
 
   const renderLegendIcon = (props: any) => {

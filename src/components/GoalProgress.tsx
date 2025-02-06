@@ -15,7 +15,7 @@ export function GoalProgress({ currentValue, monthlyGoal }: GoalProgressProps) {
         <div className="flex items-end space-x-4">
           <h2 className="text-4xl font-bold text-gray-white">{`${progress.toFixed(1)}%`}</h2>
           <div className="text-sm text-gray-400">
-            of ${monthlyGoal.toLocaleString()}
+          ${currentValue.toLocaleString()} of ${monthlyGoal.toLocaleString()}
           </div>
         </div>
         <div className="relative pt-1">

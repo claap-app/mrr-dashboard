@@ -20,7 +20,7 @@ function App() {
         month: MONTHS[i],
         target: Math.round(currentTarget)
       });
-      currentTarget *= (1 + INITIAL_GROWTH_RATE/100);
+      currentTarget *= (1 + INITIAL_GROWTH_RATE / 100);
     }
     return targets;
   });
@@ -28,21 +28,49 @@ function App() {
   const {
     yesterday,
     dayBeforeYesterday,
+    lastDayOfPreviousMonth,
     dailyGrowthPercentage,
     thirtyDayGrowthPercentage,
     last6MonthsData
   } = useMemo(() => {
     const yesterday = mrrData[mrrData.length - 1] || { mrr: 0 };
     const dayBeforeYesterday = mrrData[mrrData.length - 2] || { mrr: 0 };
+
+    // Get the current date
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth(); // 0-indexed
+
+    // Determine the last day of the previous month
+    // By setting day to 0, the Date constructor returns the last day of the previous month.
+    const previousMonthDate = new Date(currentYear, currentMonth, 0);
+    const previousYear = previousMonthDate.getFullYear();
+    const previousMonth = previousMonthDate.getMonth(); // 0-indexed
+
+    // Filter records for the previous month and year
+    const previousMonthRecords = mrrData.filter(dataPoint => {
+      const date = new Date(dataPoint.creation_date);
+      return date.getFullYear() === previousYear && date.getMonth() === previousMonth;
+    });
+
+    // Sort records by creation_date (ascending) and select the last one (the last day)
+    const lastDayOfPreviousMonth = previousMonthRecords.length > 0
+      ? previousMonthRecords.sort((a, b) => new Date(a.creation_date) - new Date(b.creation_date))[previousMonthRecords.length - 1]
+      : { mrr: 0 };
+
+    // Get the record from 30 days ago (or fallback)
     const thirtyDaysAgo = mrrData[mrrData.length - 31] || { mrr: 0 };
-    
+
     return {
       yesterday,
       dayBeforeYesterday,
-      dailyGrowthPercentage: dayBeforeYesterday.mrr ? 
-        ((yesterday.mrr - dayBeforeYesterday.mrr) / dayBeforeYesterday.mrr) * 100 : 0,
-      thirtyDayGrowthPercentage: thirtyDaysAgo.mrr ?
-        ((yesterday.mrr - thirtyDaysAgo.mrr) / thirtyDaysAgo.mrr) * 100 : 0,
+      lastDayOfPreviousMonth,
+      dailyGrowthPercentage: dayBeforeYesterday.mrr
+        ? ((yesterday.mrr - dayBeforeYesterday.mrr) / dayBeforeYesterday.mrr) * 100
+        : 0,
+      thirtyDayGrowthPercentage: thirtyDaysAgo.mrr
+        ? ((yesterday.mrr - thirtyDaysAgo.mrr) / thirtyDaysAgo.mrr) * 100
+        : 0,
       last6MonthsData: mrrData.slice(-180)
     };
   }, [mrrData]);
@@ -56,21 +84,29 @@ function App() {
         month: MONTHS[i],
         target: Math.round(currentTarget)
       });
-      currentTarget *= (1 + growthRate/100);
+      currentTarget *= (1 + growthRate / 100);
     }
     setTargetMRR(newTargets);
   };
 
   if (isLoading) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        Error: {error}
+      </div>
+    );
   }
 
-  const currentMonth = new Date().getMonth() + 1; // getMonth() returns 0-11, so add 1
-  const monthlyGoal = MONTHLY_GOALS[currentMonth] || 0; // Default to 0 if no goal is set for the current month
+  const currentMonthIndex = new Date().getMonth() + 1; // getMonth() returns 0-11, so add 1
+  const monthlyGoal = MONTHLY_GOALS[currentMonthIndex] || 0; // Default to 0 if no goal is set for the current month
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -95,7 +131,10 @@ function App() {
               growth={thirtyDayGrowthPercentage}
               subtitle=" over 30 days"
             />
-            <GoalProgress currentValue={yesterday.mrr} monthlyGoal={monthlyGoal}/>
+            <GoalProgress 
+              currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr} 
+              monthlyGoal={monthlyGoal - lastDayOfPreviousMonth.mrr}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">

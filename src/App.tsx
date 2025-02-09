@@ -31,6 +31,7 @@ function App() {
     lastDayOfPreviousMonth,
     dailyGrowthPercentage,
     thirtyDayGrowthPercentage,
+    sixMonthsGrowthPercentage,
     last6MonthsData
   } = useMemo(() => {
     const yesterday = mrrData[mrrData.length - 1] || { mrr: 0 };
@@ -60,6 +61,7 @@ function App() {
 
     // Get the record from 30 days ago (or fallback)
     const thirtyDaysAgo = mrrData[mrrData.length - 31] || { mrr: 0 };
+    const sixMonthsAgo = mrrData[mrrData.length - 182] || { mrr: 0 };
 
     return {
       yesterday,
@@ -71,6 +73,9 @@ function App() {
       thirtyDayGrowthPercentage: thirtyDaysAgo.mrr
         ? ((yesterday.mrr - thirtyDaysAgo.mrr) / thirtyDaysAgo.mrr) * 100
         : 0,
+        sixMonthsGrowthPercentage: sixMonthsAgo.mrr
+        ? (yesterday.mrr / sixMonthsAgo.mrr)
+        : 0, 
       last6MonthsData: mrrData.slice(-180)
     };
   }, [mrrData]);
@@ -128,12 +133,29 @@ function App() {
             <KPICard
               title="30-Day Growth"
               value={`${Math.abs(thirtyDayGrowthPercentage).toFixed(2)}%`}
-              growth={thirtyDayGrowthPercentage}
               subtitle=" over 30 days"
             />
             <GoalProgress 
+              title="Monthly Goal Progress"
               currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr} 
               monthlyGoal={monthlyGoal - lastDayOfPreviousMonth.mrr}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+            <KPICard
+              title="ARR"
+              value={`$${(yesterday.mrr*12).toLocaleString()}`}
+            />
+            <KPICard
+              title="6 Months Growth"
+              value={`${Math.abs(sixMonthsGrowthPercentage).toFixed(2)}x`}
+              subtitle=" over 6 months"
+            />
+            <GoalProgress 
+              title="Road to 1M ARR"
+              currentValue={yesterday.mrr*12} 
+              monthlyGoal={1000000}
             />
           </div>
 

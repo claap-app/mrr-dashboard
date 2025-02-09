@@ -5,13 +5,13 @@ type GoalProgressProps = {
   monthlyGoal: number;
 };
 
-export function GoalProgress({ currentValue, monthlyGoal }: GoalProgressProps) {
+export function GoalProgress({ title, currentValue, monthlyGoal }: GoalProgressProps) {
   const progress = (currentValue / monthlyGoal) * 100;
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
       <div className="space-y-2">
-        <p className="text-gray-400">Monthly Goal Progress</p>
+        <p className="text-gray-400">{ title }</p>
         <div className="flex items-end space-x-4">
           <h2 className="text-4xl font-bold text-gray-white">{`${progress.toFixed(1)}%`}</h2>
           <div className="text-sm text-gray-400">

@@ -2,12 +2,15 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { format, parseISO, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import type { MRRData } from '../lib/supabase';
+import type { ClientsData } from '../hooks/useClientsData';
 
 type MonthlyGrowthChartProps = {
-  data: MRRData[];
+  data: (MRRData | ClientsData)[];
+  valueKey?: 'mrr' | 'clients';
+  title?: string;
 };
 
-export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
+export function MonthlyGrowthChart({ data, valueKey = 'mrr', title = "Monthly Growth Rate" }: MonthlyGrowthChartProps) {
   const calculateMonthlyGrowth = () => {
     const sixMonthsAgo = subMonths(new Date(), 6);
     const monthlyData: { month: string; growth: number }[] = [];
@@ -23,9 +26,9 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
       });
 
       if (monthData.length > 0) {
-        const startMRR = monthData[0].mrr;
-        const endMRR = monthData[monthData.length - 1].mrr;
-        const growth = ((endMRR - startMRR) / startMRR) * 100;
+        const startValue = monthData[0][valueKey];
+        const endValue = monthData[monthData.length - 1][valueKey];
+        const growth = ((endValue - startValue) / startValue) * 100;
 
         monthlyData.unshift({
           month: format(currentMonth, 'MMM'),
@@ -38,6 +41,12 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
   };
 
   const getBarColor = (value: number) => {
+    if (valueKey === 'clients') {
+      if (value <= 10) return '#D047A2';
+      if (value <= 12.5) return '#E368B9';
+      if (value <= 15) return '#E77EC3';
+      return '#E77EC3';
+    }
     if (value <= 10) return '#809CFF';
     if (value <= 12.5) return '#4C74FF';
     if (value <= 15) return '#3864FF';
@@ -63,7 +72,7 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
-      <h3 className="text-md font-medium mb-6 text-gray-white">Monthly Growth Rate</h3>
+      <h3 className="text-md font-medium mb-6 text-gray-white">{title}</h3>
       <div className="h-[280px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

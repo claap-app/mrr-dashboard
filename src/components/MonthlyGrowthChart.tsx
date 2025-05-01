@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
-import { format, parseISO, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, parseISO, subMonths, startOfMonth, endOfMonth, isValid } from 'date-fns';
 import type { MRRData } from '../lib/supabase';
 
 type MonthlyGrowthChartProps = {
@@ -9,29 +9,47 @@ type MonthlyGrowthChartProps = {
 
 export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
   const calculateMonthlyGrowth = () => {
-    const sixMonthsAgo = subMonths(new Date(), 6);
-    const monthlyData: { month: string; growth: number }[] = [];
+    // Helper function to get MRR of the last recorded day in a given month
+    const getEndOfMonthMRR = (targetMonthDate: Date, allData: MRRData[]): number | null => {
+      const monthStart = startOfMonth(targetMonthDate);
+      const monthEnd = endOfMonth(targetMonthDate);
 
-    for (let i = 0; i < 6; i++) {
-      const currentMonth = subMonths(new Date(), i);
-      const monthStart = startOfMonth(currentMonth);
-      const monthEnd = endOfMonth(currentMonth);
-
-      const monthData = data.filter(item => {
+      const monthData = allData.filter(item => {
         const date = parseISO(item.creation_date);
-        return date >= monthStart && date <= monthEnd;
+        // Ensure the date is valid before comparison
+        return isValid(date) && date >= monthStart && date <= monthEnd;
       });
 
-      if (monthData.length > 0) {
-        const startMRR = monthData[0].mrr;
-        const endMRR = monthData[monthData.length - 1].mrr;
-        const growth = ((endMRR - startMRR) / startMRR) * 100;
-
-        monthlyData.unshift({
-          month: format(currentMonth, 'MMM'),
-          growth: Number(growth.toFixed(0))
-        });
+      if (monthData.length === 0) {
+        return null; // No data for this month
       }
+
+      // Data is sorted ascendingly by creation_date from the hook
+      return monthData[monthData.length - 1].mrr;
+    };
+
+    const monthlyData: { month: string; growth: number }[] = [];
+
+    for (let i = 0; i < 6; i++) { // Calculate growth for the last 6 months
+      const currentMonthDate = subMonths(new Date(), i);
+      const previousMonthDate = subMonths(currentMonthDate, 1);
+
+      const currentMonthEndMRR = getEndOfMonthMRR(currentMonthDate, data);
+      const previousMonthEndMRR = getEndOfMonthMRR(previousMonthDate, data);
+
+      let growth = 0;
+      // Calculate growth only if we have MRR for both current and previous month, and previous month MRR is not zero
+      if (currentMonthEndMRR !== null && previousMonthEndMRR !== null && previousMonthEndMRR !== 0) {
+        growth = ((currentMonthEndMRR - previousMonthEndMRR) / previousMonthEndMRR) * 100;
+      }
+      // If current month has data but previous doesn't (or is 0), growth calculation is ambiguous.
+      // We could set it to Infinity or 100%, but setting to 0 might be less confusing.
+      // If currentMonthEndMRR is null, growth remains 0.
+
+      monthlyData.unshift({ // Add to the beginning to maintain chronological order in the chart
+        month: format(currentMonthDate, 'MMM'),
+        growth: Number(growth.toFixed(0)) // Round to nearest integer
+      });
     }
 
     return monthlyData;

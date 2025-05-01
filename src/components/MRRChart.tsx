@@ -10,6 +10,8 @@ type MRRChartProps = {
   barColor?: string;
   dataKey?: string;
   interval?: number;
+  valuePrefix?: string;
+  tooltipLabel?: string;
 };
 
 export function MRRChart({ 
@@ -18,7 +20,9 @@ export function MRRChart({
   barSize = 2, 
   barColor = '#00CF56',
   dataKey = 'mrr',
-  interval = 30 
+  interval = 30,
+  valuePrefix = '$',
+  tooltipLabel = 'MRR'
 }: MRRChartProps) {
   const filteredData = dataKey === 'mrr' ? data.filter((item) => {
     if ('creation_date' in item) {
@@ -74,14 +78,14 @@ export function MRRChart({
             />
             <YAxis 
               stroke="#4E588B"
-              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              tickFormatter={(value) => `${valuePrefix}${(value / 1000).toFixed(0)}k`}
               domain={[35000, 'auto']}
             />
             <Tooltip
               cursor={{ fill: '#32395A', opacity: 0.2 }}
               contentStyle={{ backgroundColor: '#202439', border: 'none' }}
               labelFormatter={formatTooltipLabel}
-              formatter={(value: number) => [`$${value.toLocaleString()}`, 'MRR']}
+              formatter={(value: number) => [`${valuePrefix}${value.toLocaleString()}`, tooltipLabel]}
             />
             <Bar 
               dataKey={dataKey}

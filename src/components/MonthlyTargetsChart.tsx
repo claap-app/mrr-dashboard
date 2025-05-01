@@ -5,16 +5,16 @@ import { MONTHS, MONTHLY_GOALS } from '../lib/constants';
 
 type MonthlyTargetsChartProps = {
   realizedData: MRRData[];
+  valuePrefix?: string;
 };
 
-export function MonthlyTargetsChart({ realizedData }: MonthlyTargetsChartProps) {
-  // Process realizedData to get the MRR of the last day of each month
+export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: MonthlyTargetsChartProps) {
   const getLastDayMRR = (data: MRRData[]) => {
     const lastDayMRR: { month: string; mrr: number }[] = [];
     const groupedByMonth: { [key: string]: MRRData[] } = {};
 
     data.forEach((entry) => {
-      const month = entry.creation_date.slice(0, 7); // Get the YYYY-MM part of the date
+      const month = entry.creation_date.slice(0, 7);
       if (!groupedByMonth[month]) {
         groupedByMonth[month] = [];
       }
@@ -34,13 +34,11 @@ export function MonthlyTargetsChart({ realizedData }: MonthlyTargetsChartProps) 
 
   const lastDayMRR = getLastDayMRR(realizedData);
 
-  // Create targetData from MONTHLY_GOALS
   const targetData = Object.keys(MONTHLY_GOALS).map((month) => ({
-    month: MONTHS[Number(month) - 1], // Use month names
+    month: MONTHS[Number(month) - 1],
     target: MONTHLY_GOALS[Number(month)],
   }));
 
-  // Combine targetData and lastDayMRR data
   const combinedData = targetData.map((target) => {
     const realized = lastDayMRR.find((mrr) => mrr.month === `2025-${String(MONTHS.indexOf(target.month) + 1).padStart(2, '0')}`)?.mrr || 0;
     return { ...target, realized };
@@ -76,12 +74,12 @@ export function MonthlyTargetsChart({ realizedData }: MonthlyTargetsChartProps) 
             />
             <YAxis
               stroke="#4E588B"
-              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              tickFormatter={(value) => `${valuePrefix}${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip
               cursor={{ fill: '#32395A', opacity: 0.2 }}
               contentStyle={{ backgroundColor: '#202439', border: 'none' }}
-              formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
+              formatter={(value: number, name: string) => [`${valuePrefix}${value.toLocaleString()}`, name]}
             />
             <Legend iconType="square" iconSize={10} formatter={(value) => <span style={{ color: '#4E588B' }}>{value}</span>} />
             <Bar

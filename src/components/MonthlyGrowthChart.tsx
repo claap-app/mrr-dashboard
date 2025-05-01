@@ -2,15 +2,18 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { format, parseISO, subMonths, startOfMonth, endOfMonth, isValid } from 'date-fns';
 import type { MRRData } from '../lib/supabase';
+import type { ClientsData } from '../hooks/useClientsData';
 
 type MonthlyGrowthChartProps = {
-  data: MRRData[];
+  data: (MRRData | ClientsData)[];
+  valueKey?: 'mrr' | 'clients';
+  title?: string;
 };
 
-export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
+export function MonthlyGrowthChart({ data, valueKey = 'mrr', title = "Monthly Growth Rate" }: MonthlyGrowthChartProps) {
   const calculateMonthlyGrowth = () => {
     // Helper function to get MRR of the last recorded day in a given month
-    const getEndOfMonthMRR = (targetMonthDate: Date, allData: MRRData[]): number | null => {
+    const getEndOfMonthMRR = (targetMonthDate: Date, allData: (MRRData | ClientsData)[]): number | null => {
       const monthStart = startOfMonth(targetMonthDate);
       const monthEnd = endOfMonth(targetMonthDate);
 
@@ -25,7 +28,14 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
       }
 
       // Data is sorted ascendingly by creation_date from the hook
-      return monthData[monthData.length - 1].mrr;
+      // Use the valueKey to access the correct property ('mrr' or 'clients')
+      const lastDayData = monthData[monthData.length - 1];
+      if (valueKey === 'mrr' && 'mrr' in lastDayData) {
+        return lastDayData.mrr;
+      } else if (valueKey === 'clients' && 'clients' in lastDayData) {
+        return lastDayData.clients;
+      }
+      return null; // Should not happen if valueKey matches the data structure
     };
 
     const monthlyData: { month: string; growth: number }[] = [];
@@ -34,17 +44,17 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
       const currentMonthDate = subMonths(new Date(), i);
       const previousMonthDate = subMonths(currentMonthDate, 1);
 
-      const currentMonthEndMRR = getEndOfMonthMRR(currentMonthDate, data);
-      const previousMonthEndMRR = getEndOfMonthMRR(previousMonthDate, data);
+      const currentMonthEndValue = getEndOfMonthMRR(currentMonthDate, data); // Renamed for clarity
+      const previousMonthEndValue = getEndOfMonthMRR(previousMonthDate, data); // Renamed for clarity
 
       let growth = 0;
-      // Calculate growth only if we have MRR for both current and previous month, and previous month MRR is not zero
-      if (currentMonthEndMRR !== null && previousMonthEndMRR !== null && previousMonthEndMRR !== 0) {
-        growth = ((currentMonthEndMRR - previousMonthEndMRR) / previousMonthEndMRR) * 100;
+      // Calculate growth only if we have value for both current and previous month, and previous month value is not zero
+      if (currentMonthEndValue !== null && previousMonthEndValue !== null && previousMonthEndValue !== 0) {
+        growth = ((currentMonthEndValue - previousMonthEndValue) / previousMonthEndValue) * 100;
       }
       // If current month has data but previous doesn't (or is 0), growth calculation is ambiguous.
       // We could set it to Infinity or 100%, but setting to 0 might be less confusing.
-      // If currentMonthEndMRR is null, growth remains 0.
+      // If currentMonthEndValue is null, growth remains 0.
 
       monthlyData.unshift({ // Add to the beginning to maintain chronological order in the chart
         month: format(currentMonthDate, 'MMM'),
@@ -56,6 +66,12 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
   };
 
   const getBarColor = (value: number) => {
+    if (valueKey === 'clients') {
+      if (value <= 10) return '#D047A2';
+      if (value <= 12.5) return '#E368B9';
+      if (value <= 15) return '#E77EC3';
+      return '#E77EC3';
+    }
     if (value <= 10) return '#809CFF';
     if (value <= 12.5) return '#4C74FF';
     if (value <= 15) return '#3864FF';
@@ -81,7 +97,7 @@ export function MonthlyGrowthChart({ data }: MonthlyGrowthChartProps) {
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
-      <h3 className="text-md font-medium mb-6 text-gray-white">Monthly Growth Rate</h3>
+      <h3 className="text-md font-medium mb-6 text-gray-white">{title}</h3>
       <div className="h-[280px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

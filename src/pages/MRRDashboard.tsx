@@ -126,9 +126,9 @@ export function MRRDashboard() {
           subtitle=" over 6 months"
         />
         <GoalProgress 
-          title="Road to 1M ARR"
+          title="Road to 2M ARR"
           currentValue={yesterday.mrr*12} 
-          monthlyGoal={1000000}
+          monthlyGoal={2000000}
           valuePrefix="€"
         />
       </div>

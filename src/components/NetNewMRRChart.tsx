@@ -10,28 +10,43 @@ type NetNewMRRChartProps = {
 export function NetNewMRRChart({ data }: NetNewMRRChartProps) {
   const calculateMonthlyNetNewMRR = () => {
     const monthlyData: { month: string; netNewMRR: number }[] = [];
-    const sixMonthsAgo = subMonths(new Date(), 6);
+    
+    // Sort data by date to ensure proper order
+    const sortedData = [...data].sort((a, b) => 
+      new Date(a.creation_date).getTime() - new Date(b.creation_date).getTime()
+    );
 
+    // Get the last 6 months
     for (let i = 0; i < 6; i++) {
       const currentMonth = subMonths(new Date(), i);
-      const monthStart = startOfMonth(currentMonth);
-      const monthEnd = endOfMonth(currentMonth);
+      const monthKey = format(currentMonth, 'yyyy-MM');
+      
+      // Find the last MRR value for the current month
+      const currentMonthData = sortedData.filter(item => 
+        item.creation_date.startsWith(monthKey)
+      );
+      
+      // Find the last MRR value for the previous month
+      const previousMonth = subMonths(currentMonth, 1);
+      const previousMonthKey = format(previousMonth, 'yyyy-MM');
+      const previousMonthData = sortedData.filter(item => 
+        item.creation_date.startsWith(previousMonthKey)
+      );
+      
+      const currentMonthMRR = currentMonthData.length > 0 
+        ? currentMonthData[currentMonthData.length - 1].mrr 
+        : 0;
+      
+      const previousMonthMRR = previousMonthData.length > 0 
+        ? previousMonthData[previousMonthData.length - 1].mrr 
+        : 0;
+      
+      const netNewMRR = currentMonthMRR - previousMonthMRR;
 
-      const monthData = data.filter(item => {
-        const date = parseISO(item.creation_date);
-        return date >= monthStart && date <= monthEnd;
+      monthlyData.unshift({
+        month: format(currentMonth, 'MMM'),
+        netNewMRR
       });
-
-      if (monthData.length > 0) {
-        const startMRR = monthData[0].mrr;
-        const endMRR = monthData[monthData.length - 1].mrr;
-        const netNewMRR = endMRR - startMRR;
-
-        monthlyData.unshift({
-          month: format(currentMonth, 'MMM'),
-          netNewMRR
-        });
-      }
     }
 
     return monthlyData;

@@ -19,29 +19,35 @@ export function NetNewMRRChart({ data }: NetNewMRRChartProps) {
     // Get the last 6 months
     for (let i = 0; i < 6; i++) {
       const currentMonth = subMonths(new Date(), i);
-      const monthKey = format(currentMonth, 'yyyy-MM');
+      const currentYear = currentMonth.getFullYear();
+      const currentMonthIndex = currentMonth.getMonth();
       
       // Find the last MRR value for the current month
-      const currentMonthData = sortedData.filter(item => 
-        item.creation_date.startsWith(monthKey)
-      );
+      const currentMonthRecords = sortedData.filter(dataPoint => {
+        const date = new Date(dataPoint.creation_date);
+        return date.getFullYear() === currentYear && date.getMonth() === currentMonthIndex;
+      });
       
       // Find the last MRR value for the previous month
       const previousMonth = subMonths(currentMonth, 1);
-      const previousMonthKey = format(previousMonth, 'yyyy-MM');
-      const previousMonthData = sortedData.filter(item => 
-        item.creation_date.startsWith(previousMonthKey)
-      );
+      const previousYear = previousMonth.getFullYear();
+      const previousMonthIndex = previousMonth.getMonth();
       
-      const currentMonthMRR = currentMonthData.length > 0 
-        ? currentMonthData[currentMonthData.length - 1].mrr 
+      const previousMonthRecords = sortedData.filter(dataPoint => {
+        const date = new Date(dataPoint.creation_date);
+        return date.getFullYear() === previousYear && date.getMonth() === previousMonthIndex;
+      });
+      
+      const currentMonthMRR = currentMonthRecords.length > 0 
+        ? currentMonthRecords[currentMonthRecords.length - 1].mrr 
+        : null;
+      
+      const previousMonthMRR = previousMonthRecords.length > 0 
+        ? previousMonthRecords[previousMonthRecords.length - 1].mrr 
         : 0;
       
-      const previousMonthMRR = previousMonthData.length > 0 
-        ? previousMonthData[previousMonthData.length - 1].mrr 
-        : 0;
-      
-      const netNewMRR = currentMonthMRR - previousMonthMRR;
+      // Only calculate net new MRR if we have data for the current month
+      const netNewMRR = currentMonthMRR !== null ? currentMonthMRR - previousMonthMRR : 0;
 
       monthlyData.unshift({
         month: format(currentMonth, 'MMM'),

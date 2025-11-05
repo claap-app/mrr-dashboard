@@ -26,16 +26,17 @@ export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: Month
       const lastDayEntry = monthData.reduce((latest, entry) => {
         return new Date(entry.creation_date) > new Date(latest.creation_date) ? entry : latest;
       });
-      lastDayMRR.push({ month, mrr: lastDayEntry.mrr });
+      lastDayMRR.push({ month, mrr: lastDayEntry.mrr * 12 }); // Convert MRR to ARR
     });
 
-    return lastDayMRR;
+    return lastDayMRR.sort((a, b) => a.month.localeCompare(b.month));
   };
 
   const lastDayMRR = getLastDayMRR(realizedData);
 
   const targetData = Object.keys(MONTHLY_GOALS).map((monthKey) => {
     const monthNum = Number(monthKey);
+    // monthNum: 11=Nov 2025, 12=Dec 2025, 13-24=Jan-Dec 2026
     const year = monthNum <= 12 ? 2025 : 2026;
     const monthIndex = monthNum <= 12 ? monthNum - 1 : monthNum - 13;
     const monthLabel = `${MONTHS[monthIndex]} ${year}`;
@@ -48,10 +49,24 @@ export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: Month
     };
   });
 
-  const combinedData = targetData.map((target) => {
+  // Calculate new ARR added each month
+  const combinedData = targetData.map((target, index) => {
     const monthStr = String(target.monthIndex).padStart(2, '0');
-    const realized = lastDayMRR.find((mrr) => mrr.month === `${target.year}-${monthStr}`)?.mrr || 0;
-    return { ...target, realized };
+    const currentMonthARR = lastDayMRR.find((mrr) => mrr.month === `${target.year}-${monthStr}`)?.mrr || 0;
+
+    // Get previous month ARR
+    let prevMonthARR = 0;
+    if (index > 0) {
+      const prevTarget = targetData[index - 1];
+      const prevMonthStr = String(prevTarget.monthIndex).padStart(2, '0');
+      prevMonthARR = lastDayMRR.find((mrr) => mrr.month === `${prevTarget.year}-${prevMonthStr}`)?.mrr || 0;
+    } else {
+      // For November 2025 (first month), use October 2025 as baseline
+      prevMonthARR = lastDayMRR.find((mrr) => mrr.month === '2025-10')?.mrr || 0;
+    }
+
+    const realized = currentMonthARR - prevMonthARR;
+    return { ...target, realized: Math.max(0, realized) };
   });
 
   const renderLegendIcon = (props: any) => {
@@ -70,7 +85,7 @@ export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: Month
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
-      <h3 className="text-md font-medium mb-6 text-gray-white">Monthly Targets (2025-2026)</h3>
+      <h3 className="text-md font-medium mb-6 text-gray-white">New ARR Targets (Nov 2025 - Dec 2026)</h3>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

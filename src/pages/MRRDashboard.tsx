@@ -90,8 +90,23 @@ export function MRRDashboard() {
     );
   }
 
-  const currentMonthIndex = new Date().getMonth() + 1;
-  const monthlyGoal = MONTHLY_GOALS[currentMonthIndex] || 0;
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonthIndex = currentDate.getMonth() + 1;
+
+  // Calculate the key for MONTHLY_GOALS based on year and month
+  let monthlyGoalKey;
+  if (currentYear === 2025) {
+    monthlyGoalKey = currentMonthIndex; // Months 1-12
+  } else if (currentYear === 2026) {
+    monthlyGoalKey = currentMonthIndex + 12; // Months 13-24
+  } else if (currentYear > 2026) {
+    monthlyGoalKey = 24; // Use December 2026 target for future years
+  } else {
+    monthlyGoalKey = 1; // Use January 2025 target for years before 2025
+  }
+
+  const monthlyGoal = MONTHLY_GOALS[monthlyGoalKey] || 0;
 
   return (
     <div className="space-y-16">

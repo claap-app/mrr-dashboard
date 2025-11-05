@@ -34,13 +34,23 @@ export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: Month
 
   const lastDayMRR = getLastDayMRR(realizedData);
 
-  const targetData = Object.keys(MONTHLY_GOALS).map((month) => ({
-    month: MONTHS[Number(month) - 1],
-    target: MONTHLY_GOALS[Number(month)],
-  }));
+  const targetData = Object.keys(MONTHLY_GOALS).map((monthKey) => {
+    const monthNum = Number(monthKey);
+    const year = monthNum <= 12 ? 2025 : 2026;
+    const monthIndex = monthNum <= 12 ? monthNum - 1 : monthNum - 13;
+    const monthLabel = `${MONTHS[monthIndex]} ${year}`;
+
+    return {
+      month: monthLabel,
+      target: MONTHLY_GOALS[monthNum],
+      year,
+      monthIndex: monthIndex + 1,
+    };
+  });
 
   const combinedData = targetData.map((target) => {
-    const realized = lastDayMRR.find((mrr) => mrr.month === `2025-${String(MONTHS.indexOf(target.month) + 1).padStart(2, '0')}`)?.mrr || 0;
+    const monthStr = String(target.monthIndex).padStart(2, '0');
+    const realized = lastDayMRR.find((mrr) => mrr.month === `${target.year}-${monthStr}`)?.mrr || 0;
     return { ...target, realized };
   });
 
@@ -60,7 +70,7 @@ export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: Month
 
   return (
     <div className="bg-gray-1600 rounded-xl p-6">
-      <h3 className="text-md font-medium mb-6 text-gray-white">2025 Monthly Targets</h3>
+      <h3 className="text-md font-medium mb-6 text-gray-white">Monthly Targets (2025-2026)</h3>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

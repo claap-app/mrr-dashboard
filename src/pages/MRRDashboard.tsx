@@ -14,7 +14,7 @@ export function MRRDashboard() {
   const [targetMRR, setTargetMRR] = useState(() => {
     const targets = [];
     let currentTarget = 52000;
-    
+
     for (let i = 0; i < 12; i++) {
       targets.push({
         month: MONTHS[i],
@@ -121,9 +121,9 @@ export function MRRDashboard() {
           value={`${Math.abs(thirtyDayGrowthPercentage).toFixed(2)}%`}
           subtitle=" over 30 days"
         />
-        <GoalProgress 
+        <GoalProgress
           title="Monthly Goal Progress"
-          currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr} 
+          currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr}
           monthlyGoal={monthlyGoal - lastDayOfPreviousMonth.mrr}
           valuePrefix="€"
         />
@@ -139,9 +139,9 @@ export function MRRDashboard() {
           value={`${Math.abs(sixMonthsGrowthPercentage).toFixed(2)}x`}
           subtitle=" over 6 months"
         />
-        <GoalProgress 
+        <GoalProgress
           title="Road to 2M ARR"
-          currentValue={yesterday.mrr*12} 
+          currentValue={yesterday.mrr*12}
           monthlyGoal={2000000}
           valuePrefix="€"
         />

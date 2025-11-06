@@ -14,7 +14,7 @@ export function MRRDashboard() {
   const [targetMRR, setTargetMRR] = useState(() => {
     const targets = [];
     let currentTarget = 52000;
-    
+
     for (let i = 0; i < 12; i++) {
       targets.push({
         month: MONTHS[i],
@@ -94,24 +94,18 @@ export function MRRDashboard() {
   const currentYear = currentDate.getFullYear();
   const currentMonthIndex = currentDate.getMonth() + 1;
 
-  // Calculate the key for MONTHLY_GOALS based on year and month
-  // MONTHLY_GOALS now contains only Nov-Dec 2025 (keys 11-12) and Jan-Dec 2026 (keys 13-24)
+  // Calculate the key for MONTHLY_GOALS
+  // Keys 11-12 = Nov-Dec 2025, Keys 13-24 = Jan-Dec 2026
   let monthlyGoalKey;
   if (currentYear === 2025 && currentMonthIndex >= 11) {
-    monthlyGoalKey = currentMonthIndex; // Keys 11-12 for Nov-Dec 2025
+    monthlyGoalKey = currentMonthIndex; // 11 or 12
   } else if (currentYear === 2026) {
-    monthlyGoalKey = currentMonthIndex + 12; // Keys 13-24 for Jan-Dec 2026
+    monthlyGoalKey = currentMonthIndex + 12; // 13-24
   } else {
-    monthlyGoalKey = null; // No target defined for other periods
+    monthlyGoalKey = null; // No target for other periods
   }
 
-  // MONTHLY_GOALS now contains NEW ARR targets (not cumulative)
   const monthlyGoal = monthlyGoalKey ? (MONTHLY_GOALS[monthlyGoalKey] || 0) : 0;
-
-  // Calculate new ARR added this month (current ARR - previous month ARR)
-  const currentARR = yesterday.mrr * 12;
-  const previousMonthARR = lastDayOfPreviousMonth.mrr * 12;
-  const newARRThisMonth = currentARR - previousMonthARR;
 
   return (
     <div className="space-y-16">
@@ -128,9 +122,9 @@ export function MRRDashboard() {
           subtitle=" over 30 days"
         />
         <GoalProgress
-          title="Monthly New ARR Goal"
-          currentValue={newARRThisMonth}
-          monthlyGoal={monthlyGoal}
+          title="Monthly Goal Progress"
+          currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr}
+          monthlyGoal={monthlyGoal - lastDayOfPreviousMonth.mrr}
           valuePrefix="€"
         />
       </div>
@@ -146,9 +140,9 @@ export function MRRDashboard() {
           subtitle=" over 6 months"
         />
         <GoalProgress
-          title="Road to 1.9M ARR"
+          title="Road to 2M ARR"
           currentValue={yesterday.mrr*12}
-          monthlyGoal={1900000}
+          monthlyGoal={2000000}
           valuePrefix="€"
         />
       </div>

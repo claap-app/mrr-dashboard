@@ -76,12 +76,12 @@ export function NetNewMRRChart({ data }: NetNewMRRChartProps) {
             />
             <YAxis
               stroke="#4E588B"
-              tickFormatter={(value) => `€${(value / 1000).toFixed(0)}k`}
+              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip
               cursor={{ fill: '#32395A', opacity: 0.2 }}
               contentStyle={{ backgroundColor: '#202439', border: 'none' }}
-              formatter={(value: number) => [`€${value.toLocaleString()}`, 'Net New MRR']}
+              formatter={(value: number) => [`$${value.toLocaleString()}`, 'Net New MRR']}
             />
             <Bar
               dataKey="netNewMRR"

@@ -8,7 +8,7 @@ type MonthlyTargetsChartProps = {
   valuePrefix?: string;
 };
 
-export function MonthlyTargetsChart({ realizedData, valuePrefix = '€' }: MonthlyTargetsChartProps) {
+export function MonthlyTargetsChart({ realizedData, valuePrefix = '$' }: MonthlyTargetsChartProps) {
   const getLastDayMRR = (data: MRRData[]) => {
     const lastDayMRR: { month: string; mrr: number }[] = [];
     const groupedByMonth: { [key: string]: MRRData[] } = {};

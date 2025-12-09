@@ -112,7 +112,7 @@ export function MRRDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
         <KPICard
           title="Yesterday's MRR"
-          value={`€${yesterday.mrr.toLocaleString()}`}
+          value={`$${yesterday.mrr.toLocaleString()}`}
           growth={dailyGrowthPercentage}
           subtitle=" daily"
         />
@@ -125,14 +125,14 @@ export function MRRDashboard() {
           title="Monthly Goal Progress"
           currentValue={yesterday.mrr - lastDayOfPreviousMonth.mrr}
           monthlyGoal={monthlyGoal - lastDayOfPreviousMonth.mrr}
-          valuePrefix="€"
+          valuePrefix="$"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
         <KPICard
           title="ARR"
-          value={`€${(yesterday.mrr*12).toLocaleString()}`}
+          value={`$${(yesterday.mrr*12).toLocaleString()}`}
         />
         <KPICard
           title="6 Months Growth"
@@ -143,7 +143,7 @@ export function MRRDashboard() {
           title="Road to 2M ARR"
           currentValue={yesterday.mrr*12}
           monthlyGoal={2000000}
-          valuePrefix="€"
+          valuePrefix="$"
         />
       </div>
 
@@ -152,13 +152,13 @@ export function MRRDashboard() {
           data={last6MonthsData}
           title="MRR Growth - Last 3 Months"
           barColor="#00CF56"
-          valuePrefix="€"
+          valuePrefix="$"
         />
         <MonthlyGrowthChart data={mrrData} />
       </div>
 
       <div>
-        <MonthlyTargetsChart targetData={targetMRR} realizedData={mrrData} valuePrefix="€" />
+        <MonthlyTargetsChart targetData={targetMRR} realizedData={mrrData} valuePrefix="$" />
       </div>
 
       <div>
